@@ -1,0 +1,13 @@
+numpy=1.14.6
+IPython=7.0.1
+pandas=0.23.4
+keras==2.2.4
+matplotlib=3.0.0
+scikit-learn=0.20.0
+h5py=2.8.0
+pydot=1.2.4
+unidecode=1.0.22
+boto3=1.9.22
+tqdm=4.31.1
+scipy=1.1.0
+livelossplot
