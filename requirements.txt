@@ -10,4 +10,10 @@ unidecode=1.0.22
 boto3=1.9.22
 tqdm=4.31.1
 scipy=1.1.0
-livelossplot
+livelossplot=0.2.0
+scikit-image=0.14.1
+tensorboard
+mlflow
+opencv-python
+torch
+torchvision

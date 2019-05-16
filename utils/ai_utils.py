@@ -10,7 +10,6 @@ def cosine_annealing(x):
     epochs = 20
     return lr * (np.cos(np.pi * x / epochs) + 1.) / 2
 
-
 # define iou or jaccard loss function
 def iou_loss(y_true, y_pred):
     y_true = tf.reshape(y_true, [-1])

@@ -17,12 +17,11 @@ TEMP_DATA_PATH = '/tmp/'
 TB_LOGS_PATH = '/tmp/tb_logs/'
 DL_MODELS_PATH = TEMP_DATA_PATH + 'models/dl/'
 
-MODANET_TRAIN_PATH = '/Users/cenkcorapci/Downloads/modanet2018_instances_train.json'
-MODANET_TEST_PATH = '/Users/cenkcorapci/Downloads/modanet2018_instances_val.json'
-
-CHICKTOPIA_IMAGE_DATA_SET_DOWNLOAD_URL = 'https://s3-ap-northeast-1.amazonaws.com/kyamagu-public/chictopia2/photos.lmdb.tar'  # 40 gb
-MODANET_TRAIN_DOWNLOAD_URL = 'https://github.com/eBay/modanet/raw/master/annotations/modanet2018_instances_train.json'  # 101 mb
-MODANET_VAL_DOWNLOAD_URL = 'https://github.com/eBay/modanet/raw/master/annotations/modanet2018_instances_val.json'  # 210 kb
+FGVC6_TRAIN_CSV_PATH = '/Volumes/data-storag/data-sets/fgvc6-fashion/train.csv'
+FGVC6_LABEL_DESCRIPTIONS_PATH = '/Volumes/data-storag/data-sets/fgvc6-fashion/label_descriptions.json'
+FGVC6_TRAIN_CSV_PATH = '/Volumes/data-storag/data-sets/fgvc6-fashion/train.csv'
+FGVC6_TRAIN_IMAGES_FOLDER_PATH = '/Volumes/data-storag/data-sets/fgvc6-fashion/train_images'
+FGVC6_TEST_IMAGES_FOLDER_PATH = '/Volumes/data-storag/data-sets/fgvc6-fashion/test_images'
 
 # create directories
 logging.info("Checking directories...")
