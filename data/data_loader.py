@@ -19,6 +19,9 @@ class DataLoader:
     def get_category_name(self, category_id):
         return self._category_definitions.loc[self._category_definitions.id == category_id].name.values[0]
 
+    def get_num_of_classes(self):
+        return len(self._category_definitions)
+
     def get_training_data_set(self):
         return self._train_data
 
