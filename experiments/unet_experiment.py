@@ -197,7 +197,7 @@ class UNetExperiment:
 
 
 if __name__ == "__main__":
-    model = UNetExperiment(batch_size=4, nb_epochs=10, early_stopping_at=3, val_split=.1, debug_sample_size=2048)
-    model.load_model()
+    model = UNetExperiment(batch_size=2, nb_epochs=2, early_stopping_at=3, val_split=.1, debug_sample_size=8)
+    # model.load_model()
     model.train_model()
     model.generate_submission()
