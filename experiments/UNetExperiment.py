@@ -4,6 +4,8 @@ from __future__ import print_function, division
 import copy
 import time
 
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.onnx
@@ -16,6 +18,7 @@ from commons.config import *
 from commons.model_storage import *
 from data.data_loader import DataLoader
 from data.sample_generator import FashionParsingDataSet
+from data.test_generator_for_submission import FGVC6SubmissionSetGenerator
 from models.unet import UNet
 from monitoring.tensorboard import TensorBoardMonitoring
 
@@ -75,8 +78,35 @@ class UNetExperiment:
         # Model storage
         self._model_storage = ModelStorage(self._model_name)
 
+        # FGVC6 submission
+        self._sample_df = pd.read_csv(FGVC6_SAMPLE_SUBMISSION_CSV_PATH)
+        self._submission_data_generator = FGVC6SubmissionSetGenerator(self._sample_df, self._width, self._height,
+                                                                      self._num_of_classes)
+
     def generate_model(self):
         return UNet(3, self._num_of_classes).to(self._device)
+
+    def load_model(self):
+        self._model = self._model_storage.load(self._model)
+
+    def generate_submission(self):
+        sub_list = []
+        self._model.eval()
+        submission_progress = tqdm(total=len(self._submission_data_generator), desc='Submission progress')
+
+        for img_name, img in self._submission_data_generator.test_generator():
+            X = torch.tensor(img, dtype=torch.float32).to(self._device)
+            mask_pred = self._model(X)
+            mask_pred = mask_pred.cpu().detach().numpy()
+            mask_prob = np.argmax(mask_pred, axis=1)
+            mask_prob = mask_prob.ravel(order='F')
+            class_dict = self._submission_data_generator.run_length(mask_prob)
+            for key, val in class_dict.items():
+                sub_list.append([img_name, " ".join(map(str, val)), key])
+            submission_progress.update()
+
+        submission_df = pd.DataFrame(sub_list, columns=self._sample_df.columns.values)
+        submission_df.to_csv(FGVC6_SUBMISSION_CSV_PATH, index=False)
 
     def train_model(self):
         since = time.time()
@@ -96,7 +126,7 @@ class UNetExperiment:
                 loader = self._data_loader_train if phase == 'train' else self._data_loader_val
                 # Iterate over data.
 
-                epoch_progress = tqdm(total=len(loader), desc='Samples from epoch: {0}'.format(epoch))
+                epoch_progress = tqdm(total=len(loader), desc=' Epoch {0} progress'.format(epoch))
                 epoch_loss = 0.
                 inc = 0
 
@@ -167,5 +197,7 @@ class UNetExperiment:
 
 
 if __name__ == "__main__":
-    model = UNetExperiment(batch_size=4, nb_epochs=10, early_stopping_at=3, debug_sample_size=1024)
+    model = UNetExperiment(batch_size=4, nb_epochs=10, early_stopping_at=3, val_split=.1, debug_sample_size=2048)
+    model.load_model()
     model.train_model()
+    model.generate_submission()

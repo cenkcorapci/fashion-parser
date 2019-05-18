@@ -19,6 +19,8 @@ DL_MODELS_PATH = TEMP_DATA_PATH + 'models/dl/'
 
 FGVC6_DATA_SET_ROOT_PATH = '/run/media/twoaday/data-storag/data-sets/fgvc6-fashion/'
 FGVC6_TRAIN_CSV_PATH = '{0}train.csv'.format(FGVC6_DATA_SET_ROOT_PATH)
+FGVC6_SUBMISSION_CSV_PATH = '{0}submission.csv'.format(FGVC6_DATA_SET_ROOT_PATH)
+FGVC6_SAMPLE_SUBMISSION_CSV_PATH = '{0}sample_submission.csv'.format(FGVC6_DATA_SET_ROOT_PATH)
 FGVC6_LABEL_DESCRIPTIONS_PATH = '{0}label_descriptions.json'.format(FGVC6_DATA_SET_ROOT_PATH)
 FGVC6_TRAIN_CSV_PATH = '{0}train.csv'.format(FGVC6_DATA_SET_ROOT_PATH)
 FGVC6_TRAIN_IMAGES_FOLDER_PATH = '{0}train_images/'.format(FGVC6_DATA_SET_ROOT_PATH)
