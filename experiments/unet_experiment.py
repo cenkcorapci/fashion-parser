@@ -189,6 +189,7 @@ class UNetExperiment:
                 else:
                     self._tensorboard.log_scalar("train_loss", epoch_loss, epoch)
 
+
         time_elapsed = time.time() - since
         self._model.load_state_dict(state_dict=best_model_wts)
 

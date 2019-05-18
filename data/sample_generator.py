@@ -10,14 +10,11 @@ from utils.image_masker import ImageMasker
 
 class FashionParsingDataSet(data.Dataset):
     def __init__(self, df, category_num, width, height):
-        self._images = df.ImageId.values
+        self._images = df.ImageId.unique()
         self._data_set = df
         self._width = width
         self._height = height
         self._masker = ImageMasker(category_num)
-
-    def shuffle(self):
-        self._images = sample(self._images, len(self._images))
 
     def __len__(self):
         return len(self._images)
