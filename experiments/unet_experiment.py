@@ -64,11 +64,15 @@ class UNetExperiment:
         self._device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self._model = self.generate_model()
 
-        self._criterion = nn.MSELoss()
+        self._criterion = nn.BCELoss()
 
         # Observe that all parameters are being optimized
-        self._optimizer = torch_optimizer.Adagrad(self._model.parameters(), lr=learning_rate)
-
+        self._optimizer = torch_optimizer.SGD(
+            self._model.parameters(),
+            lr=0.1,
+            momentum=0.9,
+            weight_decay=0.0005
+        )
         # Decay LR by a factor of 0.1 every 7 epochs
         self._scheduler = lr_scheduler.StepLR(self._optimizer, step_size=10, gamma=0.1)
 
@@ -140,7 +144,7 @@ class UNetExperiment:
                         # track history if only in train
                         with torch.set_grad_enabled(phase == 'train'):
                             outputs = self._model(X)
-                            loss = self._criterion(outputs if phase != 'train' else outputs[0], Y)
+                            loss = self._criterion(outputs, Y)
 
                             # backward + optimize only if in training phase
                             if phase == 'train':
@@ -188,7 +192,6 @@ class UNetExperiment:
                         self._tensorboard.log_histogram("Layer {}".format(k), v.to('cpu').numpy(), epoch, bins=10)
                 else:
                     self._tensorboard.log_scalar("train_loss", epoch_loss, epoch)
-
 
         time_elapsed = time.time() - since
         self._model.load_state_dict(state_dict=best_model_wts)
