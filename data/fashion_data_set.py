@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from commons.config import IMAGE_SIZE
+from commons.config import IMAGE_SIZE, FGVC6_TRAIN_IMAGES_FOLDER_PATH
 from data.data_loader import DataLoader
 from mrcnn import utils
 from utils.image_utils import resize_image
@@ -21,7 +21,7 @@ class FashionDataset(utils.Dataset):
         for i, row in df.iterrows():
             self.add_image("fashion",
                            image_id=row.name,
-                           path='FGVC6_TRAIN_IMAGES_FOLDER_PATH{0}'.format(row.name),
+                           path='{0}{1}'.format(FGVC6_TRAIN_IMAGES_FOLDER_PATH, row.name),
                            labels=row['CategoryId'],
                            annotations=row['EncodedPixels'],
                            height=row['Height'], width=row['Width'])

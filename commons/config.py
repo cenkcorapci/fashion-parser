@@ -17,10 +17,10 @@ IMAGE_SIZE = 512
 # Local files
 TEMP_DATA_PATH = '/tmp/'
 TB_LOGS_PATH = '/tmp/tb_logs/'
-DL_MODELS_PATH = TEMP_DATA_PATH + 'models/dl/'
-
 FGVC6_DATA_SET_ROOT_PATH = '/run/media/twoaday/Elements/archive/data/fgvc6-fashion/imaterialist-fashion-2019-FGVC6/'
 PRE_TRAINED_FASHION_WEIGHTS = '{}mask_rcnn_fashion_0008.h5'.format(FGVC6_DATA_SET_ROOT_PATH)
+
+DL_MODELS_PATH = FGVC6_DATA_SET_ROOT_PATH + 'models/dl/'
 
 FGVC6_TRAIN_CSV_PATH = '{0}train.csv'
 FGVC6_SUBMISSION_CSV_PATH = '{0}submission.csv'.format(FGVC6_DATA_SET_ROOT_PATH)

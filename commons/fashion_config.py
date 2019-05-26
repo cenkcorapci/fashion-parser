@@ -8,7 +8,8 @@ class FashionConfig(Config):
 
     GPU_COUNT = 1
     IMAGES_PER_GPU = 4  # a memory error occurs when IMAGES_PER_GPU is too high
-
+    STEPS_PER_EPOCH = 10000000  # use all the data
+    VALIDATION_STEPS = 100000
     BACKBONE = 'resnet50'
 
     IMAGE_MIN_DIM = IMAGE_SIZE

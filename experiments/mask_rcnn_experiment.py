@@ -19,28 +19,25 @@ from utils.image_utils import resize_image, refine_masks, to_rle
 
 class MaskRCNNExperiment:
     def __init__(self,
-                 debug_sample_size=None,
                  val_split=0.1,
-                 batch_size=16,
                  nb_epochs=3,
-                 learning_rate=0.01):
+                 learning_rate=0.002):
+
         self._in_inference_mode = False
         self._nb_epochs = nb_epochs
-        self._batch_size = batch_size
         self._lr = learning_rate
         self._model_name = 'mask_r_cnn_fashion'
-        self._debug_sample_size = debug_sample_size
 
         logging.info("Getting data set")
         loader = DataLoader()
         df = loader.image_df
-        if debug_sample_size is not None:
-            df = df.sample(debug_sample_size)
 
         logging.info("Splitting {0} samples for validation".format(float(len(df)) * val_split))
 
         self._class_names = loader.label_names
         self._train_data_set, self._val_data_set = train_test_split(df, random_state=RANDOM_STATE, test_size=val_split)
+        train_size = len(self._train_data_set)
+        val_size = len(self._val_data_set)
 
         self._train_data_set = FashionDataset(self._train_data_set, self._class_names)
         self._val_data_set = FashionDataset(self._val_data_set, self._class_names)
@@ -57,9 +54,13 @@ class MaskRCNNExperiment:
             iaa.MotionBlur(k=(3, 15))
         ])
         self._model_config = FashionConfig()
+        self._model_config.STEPS_PER_EPOCH = train_size / self._model_config.IMAGES_PER_GPU
+        self._model_config.VALIDATION_STEPS = val_size / self._model_config.IMAGES_PER_GPU
+        # load model
         self._model = modellib.MaskRCNN(mode='training',
                                         config=self._model_config,
                                         model_dir=DL_MODELS_PATH)
+
         self._model.load_weights(PRE_TRAINED_FASHION_WEIGHTS,
                                  by_name=True,
                                  exclude=['mrcnn_class_logits', 'mrcnn_bbox_fc', 'mrcnn_bbox', 'mrcnn_mask'])
@@ -111,6 +112,13 @@ class MaskRCNNExperiment:
                 sub_list.append([row['ImageId'], '1 1', 23])
                 missing_count += 1
 
+        submission_df = pd.DataFrame(sub_list, columns=self._sample_df.columns.values)
+        print("Total image results: ", submission_df['ImageId'].nunique())
+        print("Missing Images: ", missing_count)
+        submission_df.to_csv(FGVC6_SUBMISSION_CSV_PATH, index=False)
+
+        submission_df.head()
+
     def visualize(self):
         for i in range(9):
             image_id = self._sample_df.sample()['ImageId'].values[0]
@@ -142,9 +150,7 @@ class MaskRCNNExperiment:
 
 
 if __name__ == "__main__":
-    experiment = MaskRCNNExperiment(batch_size=2,
-                                    nb_epochs=2,
-                                    val_split=.1,
-                                    debug_sample_size=128)
+    experiment = MaskRCNNExperiment(nb_epochs=2, val_split=.1)
     experiment.set_to_inference_mode()
+    experiment.predict()
     experiment.visualize()
