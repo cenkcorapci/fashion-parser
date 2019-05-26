@@ -1,5 +1,7 @@
 # fashion-parser
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub last commit](https://img.shields.io/github/last-commit/cenkcorapci/fashion-parser.svg)
+
 *Under Construction*
 
 Fashion segmentation based on [Matterport's mask r-cnn implementation](https://github.com/matterport/Mask_RCNN) using
