@@ -21,12 +21,12 @@ class MaskRCNNExperiment:
     def __init__(self,
                  val_split=0.1,
                  nb_epochs=3,
-                 learning_rate=0.002):
+                 learning_rate=0.01):
 
         self._in_inference_mode = False
         self._nb_epochs = nb_epochs
         self._lr = learning_rate
-        self._model_name = 'mask_r_cnn_fashion'
+        self._model_name = 'mask_r_cnn_fashion_resnet_101'
 
         logging.info("Getting data set")
         loader = DataLoader()
@@ -48,10 +48,7 @@ class MaskRCNNExperiment:
 
         self._augmentation = iaa.Sequential([
             iaa.Fliplr(.5),  # horizontal flip
-            iaa.Flipud(.5),  # vertical flip
-            iaa.CoarseSaltAndPepper(p=.1, size_percent=.4),  # Add Relatively small Salt and pepper areas
-            iaa.SaltAndPepper(p=.03),  # Add Relatively small Salt and pepper areas
-            iaa.MotionBlur(k=(3, 15))
+            iaa.Flipud(.5)  # vertical flip
         ])
         self._model_config = FashionConfig()
         self._model_config.STEPS_PER_EPOCH = train_size / self._model_config.IMAGES_PER_GPU
@@ -60,15 +57,14 @@ class MaskRCNNExperiment:
         self._model = modellib.MaskRCNN(mode='training',
                                         config=self._model_config,
                                         model_dir=DL_MODELS_PATH)
+        if PRE_TRAINED_FASHION_WEIGHTS is not None:
+            self._model.load_weights(PRE_TRAINED_FASHION_WEIGHTS,
+                                     by_name=True,
+                                     exclude=['mrcnn_class_logits', 'mrcnn_bbox_fc', 'mrcnn_bbox', 'mrcnn_mask'])
 
-        self._model.load_weights(PRE_TRAINED_FASHION_WEIGHTS,
-                                 by_name=True,
-                                 exclude=['mrcnn_class_logits', 'mrcnn_bbox_fc', 'mrcnn_bbox', 'mrcnn_mask'])
+        es_cb = EarlyStopping(monitor='val_mrcnn_mask_loss', patience=2)
 
-        tb_callback = TensorBoard(log_dir=TB_LOGS_PATH, histogram_freq=0, write_graph=True, write_images=False,
-                                  embeddings_freq=0, embeddings_layer_names='title_embeddings_layer',
-                                  embeddings_metadata=None)
-        self._callbacks = [tb_callback]
+        self._callbacks = [es_cb]
 
     def train_model(self):
         self._model.train(self._train_data_set, self._val_data_set,

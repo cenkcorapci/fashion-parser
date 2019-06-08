@@ -3,14 +3,14 @@ from mrcnn.config import Config
 
 
 class FashionConfig(Config):
-    NAME = "fashion"
+    NAME = "fashion_resnet_101"
     NUM_CLASSES = NUM_CATS + 1  # +1 for the background class
 
     GPU_COUNT = 1
-    IMAGES_PER_GPU = 4  # a memory error occurs when IMAGES_PER_GPU is too high
+    IMAGES_PER_GPU = 2  # a memory error occurs when IMAGES_PER_GPU is too high
     STEPS_PER_EPOCH = 10000000  # use all the data
     VALIDATION_STEPS = 100000
-    BACKBONE = 'resnet50'
+    BACKBONE = 'resnet101'
 
     IMAGE_MIN_DIM = IMAGE_SIZE
     IMAGE_MAX_DIM = IMAGE_SIZE

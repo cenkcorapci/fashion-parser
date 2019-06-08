@@ -14,11 +14,11 @@ class FashionDataset(utils.Dataset):
         self._label_names = label_names
 
         # Add classes
-        for i, name in enumerate(self._label_names):
-            self.add_class("fashion", i + 1, name)
+        for index, name in enumerate(self._label_names):
+            self.add_class("fashion", index + 1, name)
 
         # Add images
-        for i, row in df.iterrows():
+        for _, row in df.iterrows():
             self.add_image("fashion",
                            image_id=row.name,
                            path='{0}{1}'.format(FGVC6_TRAIN_IMAGES_FOLDER_PATH, row.name),
