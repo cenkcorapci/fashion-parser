@@ -1,73 +1,73 @@
-import cv2
+import os
+
+import torch
+from PIL import Image
+from torch.utils import data
+
+from data.utils import rle2bbox, rle_decode_string
+
 import numpy as np
 
-from commons.config import IMAGE_SIZE, FGVC6_TRAIN_IMAGES_FOLDER_PATH
-from data.data_loader import DataLoader
-from mrcnn import utils
-from utils.image_utils import resize_image
 
+class FashionDataset(data.Dataset):
+    def __init__(self, df, data_dir, augmentations=None):
+        self._augmentations = augmentations
+        self._data_dir = data_dir
+        self._data = df['ImageId'].unique()
+        self._df = df
 
-class FashionDataset(utils.Dataset):
+    def __getitem__(self, idx):
+        # load images ad masks
+        image_id = self._data[idx]
+        image_path = os.path.join(self._data_dir, f'{image_id}.jpg')
+        height = self._df.loc[self._df['ImageId'] == '00000663ed1ff0c4e0132b9b9ac53f6e'].head()['Height'].values[0]
+        width = self._df.loc[self._df['ImageId'] == '00000663ed1ff0c4e0132b9b9ac53f6e'].head()['Width'].values[0]
+        image = Image.open(image_path).convert("RGB")
 
-    def __init__(self, df, label_names):
-        super().__init__(self)
-        self._label_names = label_names
-
-        # Add classes
-        for index, name in enumerate(self._label_names):
-            self.add_class("fashion", index + 1, name)
-
-        # Add images
-        for _, row in df.iterrows():
-            self.add_image("fashion",
-                           image_id=row.name,
-                           path='{0}{1}'.format(FGVC6_TRAIN_IMAGES_FOLDER_PATH, row.name),
-                           labels=row['CategoryId'],
-                           annotations=row['EncodedPixels'],
-                           height=row['Height'], width=row['Width'])
-
-    def image_reference(self, image_id):
-        info = self.image_info[image_id]
-        return info['path'], [self._label_names[int(x)] for x in info['labels']]
-
-    def load_image(self, image_id):
-        return resize_image(self.image_info[image_id]['path'])
-
-    def load_mask(self, image_id):
-        info = self.image_info[image_id]
-
-        mask = np.zeros((IMAGE_SIZE, IMAGE_SIZE, len(info['annotations'])), dtype=np.uint8)
+        # convert the PIL Image into a numpy array
+        masks = []
+        boxes = []
         labels = []
+        for _, row in self._df.loc[self._df['ImageId'] == '00000663ed1ff0c4e0132b9b9ac53f6e'].iterrows():
+            class_id = int(row['ClassId'])
+            encoded_pixels = row['EncodedPixels']
+            mask = rle_decode_string(encoded_pixels, height, width)
+            mask = np.expand_dims(mask, axis=2)
+            masks.append(mask)
+            boxes.append(rle2bbox(encoded_pixels, (height, width)))
+            labels.append(class_id)
 
-        for m, (annotation, label) in enumerate(zip(info['annotations'], info['labels'])):
-            sub_mask = np.full(info['height'] * info['width'], 0, dtype=np.uint8)
-            annotation = [int(x) for x in annotation.split(' ')]
+        if self._augmentations is not None:
+            image, target = self._augmentations(image=np.asarray(image), segmentation=masks)
+        # {ValueError}Tried to convert an iterable of arrays to a list of SegmentationMapsOnImage. Expected each array to be of shape (H,W,#SegmapsPerImage), i.e. to be 3-dimensional, but got dimensions 2, 2, 2, 2, 2, 2, 2, 2, 2 instead (array shapes: (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676)).
+        # convert everything into a torch.Tensor
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int64)
+        masks = torch.as_tensor(masks, dtype=torch.uint8)
 
-            for i, start_pixel in enumerate(annotation[::2]):
-                sub_mask[start_pixel: start_pixel + annotation[2 * i + 1]] = 1
+        target = {}
+        target["boxes"] = boxes
+        target["labels"] = labels
+        target["masks"] = masks
+        return image, target
 
-            sub_mask = sub_mask.reshape((info['height'], info['width']), order='F')
-            sub_mask = cv2.resize(sub_mask, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_NEAREST)
-
-            mask[:, :, m] = sub_mask
-            labels.append(int(label) + 1)
-
-        return mask, np.array(labels)
+    def __len__(self):
+        return len(self._data)
 
 
 if __name__ == '__main__':
+    import pandas as pd
+    from config import DATA_TRAIN_CSV
+    from config import DATA_TRAIN_FOLDER
+    import imgaug.augmenters as iaa
 
-    import random
-    from mrcnn import visualize
+    transforms = iaa.Sequential([
+        iaa.Resize(256),
+        iaa.Fliplr(0.5),
+        iaa.Flipud(0.5)
+    ])
 
-    loader = DataLoader()
-    dataset = FashionDataset(loader.image_df.sample(1000), loader.label_names)
-    dataset.prepare()
+    df = pd.read_csv(DATA_TRAIN_CSV)
 
-    for i in range(6):
-        image_id = random.choice(dataset.image_ids)
-        print(dataset.image_reference(image_id))
-
-        image = dataset.load_image(image_id)
-        mask, class_ids = dataset.load_mask(image_id)
-        visualize.display_top_masks(image, mask, class_ids, dataset.class_names, limit=4)
+    ds = FashionDataset(df, DATA_TRAIN_FOLDER, transforms)
+    print(ds.__getitem__(0))
