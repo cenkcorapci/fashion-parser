@@ -1,8 +1,10 @@
 import numpy as np
 
 
-def rle_decode_string(string, h, w):
-    mask = np.full(h * w, 0, dtype=np.uint8)
+def rle_decode_string(string, h, w, previous_mask=None):
+    mask = previous_mask
+    if mask is None:
+        mask = np.full(h * w, 0, dtype=np.uint8)
     annotation = [int(x) for x in string.split(' ')]
     for i, start_pixel in enumerate(annotation[::2]):
         mask[start_pixel: start_pixel + annotation[2 * i + 1]] = 1

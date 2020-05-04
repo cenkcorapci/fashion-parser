@@ -25,31 +25,24 @@ class FashionDataset(data.Dataset):
         image = Image.open(image_path).convert("RGB")
 
         # convert the PIL Image into a numpy array
-        masks = []
+        mask = None
         boxes = []
-        labels = []
         for _, row in self._df.loc[self._df['ImageId'] == '00000663ed1ff0c4e0132b9b9ac53f6e'].iterrows():
             class_id = int(row['ClassId'])
             encoded_pixels = row['EncodedPixels']
-            mask = rle_decode_string(encoded_pixels, height, width)
-            mask = np.expand_dims(mask, axis=2)
-            masks.append(mask)
+            mask = rle_decode_string(encoded_pixels, height, width, mask)
             boxes.append(rle2bbox(encoded_pixels, (height, width)))
-            labels.append(class_id)
-
+        mask = np.expand_dims(mask, axis=2)
         if self._augmentations is not None:
-            image, target = self._augmentations(image=np.asarray(image), segmentation=masks)
-        # {ValueError}Tried to convert an iterable of arrays to a list of SegmentationMapsOnImage. Expected each array to be of shape (H,W,#SegmapsPerImage), i.e. to be 3-dimensional, but got dimensions 2, 2, 2, 2, 2, 2, 2, 2, 2 instead (array shapes: (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676), (5214, 3676)).
+            image, mask, boxes = self._augmentations(image=np.asarray(image),
+                                                     segmentation_maps=np.asarray([mask]),
+                                                     bounding_boxes=boxes)
+
         # convert everything into a torch.Tensor
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
-        labels = torch.as_tensor(labels, dtype=torch.int64)
-        masks = torch.as_tensor(masks, dtype=torch.uint8)
+        mask = torch.as_tensor(mask[0], dtype=torch.int8)
 
-        target = {}
-        target["boxes"] = boxes
-        target["labels"] = labels
-        target["masks"] = masks
-        return image, target
+        return image, mask, boxes
 
     def __len__(self):
         return len(self._data)
