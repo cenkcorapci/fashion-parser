@@ -30,6 +30,12 @@ FGVC6_TRAIN_IMAGES_FOLDER_PATH = '{0}train/train/'.format(FGVC6_DATA_SET_ROOT_PA
 FGVC6_TEST_IMAGES_FOLDER_PATH = '{0}test/test/'.format(FGVC6_DATA_SET_ROOT_PATH)
 
 # create directories
-logging.info("Checking directories...")
-pathlib.Path(DL_MODELS_PATH).mkdir(parents=True, exist_ok=True)
-logging.info("Directories are set.")
+def ensure_directories():
+    """Create necessary directories. Call this function when needed."""
+    try:
+        logging.info("Checking directories...")
+        pathlib.Path(DL_MODELS_PATH).mkdir(parents=True, exist_ok=True)
+        logging.info("Directories are set.")
+    except (PermissionError, FileNotFoundError) as e:
+        logging.warning(f"Could not create directories: {e}. This is expected in test environments.")
+
