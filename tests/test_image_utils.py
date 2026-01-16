@@ -48,6 +48,7 @@ class TestToRle:
         bits = np.array([0, 0, 1, 1, 1, 0, 1, 1])
         result = to_rle(bits)
         
+        # RLE format: [start_position, run_length, start_position, run_length, ...]
         # First run of 1s starts at position 2, length 3
         # Second run of 1s starts at position 6, length 2
         expected = [2, 3, 6, 2]

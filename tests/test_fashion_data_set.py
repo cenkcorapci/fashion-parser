@@ -15,8 +15,8 @@ class TestFashionDataset:
         except ImportError:
             pytest.skip("TensorFlow not available")
         
-        # Create a mock dataset
-        dataset = object.__new__(FashionDataset)
+        # Create a properly mocked dataset using Mock
+        dataset = Mock(spec=FashionDataset)
         dataset._label_names = ['shirt', 'pants', 'dress']
         dataset.image_info = [
             {
@@ -25,8 +25,8 @@ class TestFashionDataset:
             }
         ]
         
-        # Execute
-        path, labels = dataset.image_reference(0)
+        # Call the actual method by binding it to the mock
+        path, labels = FashionDataset.image_reference(dataset, 0)
         
         # Assert
         assert path == '/path/to/img1.jpg'
