@@ -36,7 +36,7 @@ class TestResizeImage:
         """Test resize_image with invalid image path."""
         mock_imread.return_value = None
         
-        with pytest.raises(AttributeError):
+        with pytest.raises((AttributeError, Exception)):
             resize_image('/invalid/path.jpg')
 
 

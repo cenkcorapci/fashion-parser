@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 import mrcnn.model as modellib
 from commons.config import *
+from commons.config import ensure_directories
 from commons.fashion_config import FashionConfig, InferenceConfig
 from data.data_loader import DataLoader
 from data.fashion_data_set import FashionDataset
@@ -23,6 +24,9 @@ class MaskRCNNExperiment:
                  nb_epochs=3,
                  learning_rate=0.01):
 
+        # Ensure directories exist
+        ensure_directories()
+        
         self._in_inference_mode = False
         self._nb_epochs = nb_epochs
         self._lr = learning_rate
