@@ -5,9 +5,6 @@
 [![uv](https://img.shields.io/badge/Package--Manager-uv-blue?style=flat&logo=python)](https://github.com/astral-sh/uv)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **Modern, High-Performance Fashion Image Segmentation.** 
-> Restructured, modernized, and ready for production serving.
-
 Fashion segmentation based on **Mask R-CNN** (ResNet-50 FPN) using the [imaterialist-fashion-2019-FGVC6](https://www.kaggle.com/c/imaterialist-fashion-2019-FGVC6/overview) dataset.
 
 
