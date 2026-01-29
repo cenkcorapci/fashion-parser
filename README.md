@@ -103,7 +103,3 @@ fashion-parser/
 - [x] **Phase 2**: Migrate to PyTorch & `uv`
 - [x] **Phase 3**: Triton Inference Server Integration
 - [ ] **Phase 4**: Add Inference & Visualization Jupyter Notebooks
-
----
-
-Made by [Cenk Corapci](https://GitHub.com/cenkcorapci/)
