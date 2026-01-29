@@ -1,16 +1,16 @@
 import cv2
 import numpy as np
 
-from commons.config import IMAGE_SIZE, FGVC6_TRAIN_IMAGES_FOLDER_PATH
-from data.data_loader import DataLoader
-from mrcnn import utils
-from utils.image_utils import resize_image
+from fashion_parser.config.settings import IMAGE_SIZE, FGVC6_TRAIN_IMAGES_FOLDER_PATH
+from fashion_parser.data.loader import DataLoader
+from fashion_parser.mrcnn import utils
+from fashion_parser.utils.image_utils import resize_image
 
 
 class FashionDataset(utils.Dataset):
 
     def __init__(self, df, label_names):
-        super().__init__(self)
+        super().__init__()
         self._label_names = label_names
 
         # Add classes
@@ -58,7 +58,7 @@ class FashionDataset(utils.Dataset):
 if __name__ == '__main__':
 
     import random
-    from mrcnn import visualize
+    from fashion_parser.mrcnn import visualize
 
     loader = DataLoader()
     dataset = FashionDataset(loader.image_df.sample(1000), loader.label_names)

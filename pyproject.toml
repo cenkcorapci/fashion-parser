@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fashion-parser"
+version = "0.3.0"
+requires-python = ">=3.10"
+description = "Fashion segmentation based on Mask R-CNN"
+readme = "README.md"
+authors = [{ name = "Cenk Corapci" }]
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.23.5",
+    "pandas>=2.0.0",
+    "torch>=2.1.0",
+    "torchvision>=0.16.0",
+    "matplotlib>=3.7.0",
+    "scikit-learn>=1.2.0",
+    "h5py>=3.8.0",
+    "pydot>=1.4.2",
+    "tqdm>=4.65.0",
+    "scipy>=1.10.0",
+    "livelossplot>=0.5.5",
+    "scikit-image>=0.21.0",
+    "opencv-python>=4.7.0",
+    "imgaug>=0.4.0",
+    "python-dotenv>=1.0.0",
+    "tritonclient>=2.64.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+fashion-parser = "fashion_parser.scripts.train:main"
