@@ -1,6 +1,5 @@
 # 👗 Fashion Parser 🧥
 
-[![Built with Love](https://img.shields.io/badge/built--with---love-ff69b4.svg)](https://GitHub.com/cenkcorapci/fashion-parser)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.1%2B-ee4c2c.svg?style=flat&logo=pytorch)](https://pytorch.org/)
 [![NVIDIA Triton](https://img.shields.io/badge/Triton-Inference--Server-76b900.svg?style=flat&logo=nvidia)](https://developer.nvidia.com/nvidia-triton-inference-server)
 [![uv](https://img.shields.io/badge/Package--Manager-uv-blue?style=flat&logo=python)](https://github.com/astral-sh/uv)
