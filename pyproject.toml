@@ -31,7 +31,7 @@ dependencies = [
     "scikit-image>=0.21.0",
     "opencv-python>=4.7.0",
     "imgaug>=0.4.0",
-    "python-dotenv>=1.0.0",
+    "python-dotenv>=1.2.2",
     "tritonclient>=2.64.0",
 ]
 
