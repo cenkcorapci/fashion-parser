@@ -23,20 +23,22 @@ dependencies = [
     "torchvision>=0.16.0",
     "matplotlib>=3.7.0",
     "scikit-learn>=1.2.0",
-    "h5py>=3.8.0",
-    "pydot>=1.4.2",
     "tqdm>=4.65.0",
-    "scipy>=1.10.0",
-    "livelossplot>=0.5.5",
     "scikit-image>=0.21.0",
+    "pillow>=10.0.0",
     "opencv-python>=4.7.0",
-    "imgaug>=0.4.0",
     "python-dotenv>=1.0.0",
-    "tritonclient>=2.64.0",
+    "tritonclient[http]>=2.64.0",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [project.scripts]
-fashion-parser = "fashion_parser.scripts.train:main"
+fashion-parser = "fashion_parser.scripts.train_torch:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -31,15 +31,40 @@ Ensure you have [uv](https://github.com/astral-sh/uv) installed, then run:
 uv sync
 ```
 
-### 2️⃣ Configuration
-Copy the template and set your dataset paths:
+### 2️⃣ Get the data & configure
+Download the [FGVC6 dataset](https://www.kaggle.com/c/imaterialist-fashion-2019-FGVC6/data) so it looks like:
+
+```text
+data/
+├── train.csv
+├── label_descriptions.json
+└── train/train/*.jpg
+```
+
+Then copy the template and adjust it if your data lives elsewhere:
 ```bash
 cp .env.example .env
 ```
 
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `FGVC6_DATA_SET_ROOT_PATH` | `./data` | Dataset root |
+| `PRE_TRAINED_FASHION_WEIGHTS` | _(empty)_ | Optional weights to start from |
+| `RANDOM_STATE` | `41` | Seed for the train/val split |
+| `NUM_CATS` | `46` | Number of fashion categories (background is added) |
+| `IMAGE_SIZE` | `512` | Images/masks are resized to a square of this size |
+
 ### 3️⃣ Start Training
 ```bash
-uv run src/fashion_parser/scripts/train_torch.py
+uv run python -m fashion_parser.scripts.train_torch --epochs 10 --batch-size 2
+# or, via the installed entry point:
+uv run fashion-parser --help
+```
+Weights are saved to `fashion_mrcnn_pytorch.pth` after every epoch.
+
+### 4️⃣ Run the tests
+```bash
+uv run --extra dev pytest
 ```
 
 ---
@@ -49,7 +74,7 @@ uv run src/fashion_parser/scripts/train_torch.py
 ### Export to TorchScript
 Prepare your trained model for production:
 ```bash
-uv run src/fashion_parser/scripts/export_triton.py --weights fashion_mrcnn_pytorch.pth
+uv run python -m fashion_parser.scripts.export_triton --weights fashion_mrcnn_pytorch.pth
 ```
 
 ### Launch Server
@@ -63,8 +88,23 @@ docker run --gpus=all --rm -p 8000:8000 \
 
 ### Client Inference
 ```bash
-uv run src/fashion_parser/scripts/triton_client.py path/to/image.jpg
+uv run python -m fashion_parser.scripts.triton_client examples/example_001.jpeg --threshold 0.5
 ```
+Sample output:
+```text
+Detected 3 objects (score >= 0.50)
+  class 32  score 0.947
+  class 10  score 0.882
+  class 23  score 0.614
+```
+Or from Python:
+```python
+from fashion_parser.scripts.triton_client import infer_fashion
+
+result = infer_fashion("examples/example_001.jpeg", server_url="localhost:8000")
+result["masks"].shape  # (N, 1, 512, 512)
+```
+The served model accepts a single `[1, 3, 512, 512]` image per request.
 
 ---
 
@@ -74,11 +114,12 @@ uv run src/fashion_parser/scripts/triton_client.py path/to/image.jpg
 fashion-parser/
 ├── src/fashion_parser/
 │   ├── models/        # PyTorch model definitions & wrappers
-│   ├── data/          # Torch Dataset & Loader engines
+│   ├── data/          # Annotation loader & Torch Dataset (RLE decoding)
 │   ├── config/        # Environment-driven settings
+│   ├── utils/         # Image & RLE helpers
 │   └── scripts/       # Training, Exporting & Triton clients
+├── tests/             # pytest suite
 ├── model_repository/  # Triton deployment configurations
-├── scripts/           # Legacy entry points (for reference)
 ├── old_code/          # Backup of legacy TF/Keras implementation
 └── pyproject.toml     # Modern project configuration
 ```
