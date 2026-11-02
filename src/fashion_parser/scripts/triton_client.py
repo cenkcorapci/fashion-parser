@@ -1,56 +1,56 @@
+"""Run inference against a Triton-served fashion parser and optionally visualise it."""
+import argparse
+import logging
+
 import numpy as np
 import tritonclient.http as httpclient
 from PIL import Image
-import torch
 
-def infer_fashion(image_path, server_url="localhost:8000"):
-    # Preprocess image
-    img = Image.open(image_path).convert("RGB")
-    img = img.resize((512, 512))
-    img_array = np.array(img).transpose(2, 0, 1).astype(np.float32) / 255.0
-    img_array = np.expand_dims(img_array, axis=0) # [1, 3, 512, 512]
+from fashion_parser.config.settings import IMAGE_SIZE
 
-    # Initialize Triton client
+logger = logging.getLogger(__name__)
+
+OUTPUT_NAMES = ("boxes", "labels", "scores", "masks")
+
+
+def preprocess(image_path, image_size=IMAGE_SIZE):
+    """Load an image as a float32 ``[1, 3, H, W]`` array in ``[0, 1]``."""
+    img = Image.open(image_path).convert("RGB").resize((image_size, image_size))
+    array = np.asarray(img, dtype=np.float32).transpose(2, 0, 1) / 255.0
+    return array[None]
+
+
+def infer_fashion(image_path, server_url="localhost:8000", model_name="fashion_parser"):
+    """Return a dict with ``boxes``, ``labels``, ``scores`` and ``masks`` arrays."""
+    batch = preprocess(image_path)
     client = httpclient.InferenceServerClient(url=server_url)
 
-    # Define inputs and outputs
-    inputs = [
-        httpclient.InferInput("images", img_array.shape, "FP32")
-    ]
-    inputs[0].set_data_from_numpy(img_array)
+    infer_input = httpclient.InferInput("images", batch.shape, "FP32")
+    infer_input.set_data_from_numpy(batch)
+    outputs = [httpclient.InferRequestedOutput(name) for name in OUTPUT_NAMES]
 
-    outputs = [
-        httpclient.InferRequestedOutput("boxes"),
-        httpclient.InferRequestedOutput("labels"),
-        httpclient.InferRequestedOutput("scores"),
-        httpclient.InferRequestedOutput("masks")
-    ]
+    results = client.infer(model_name=model_name, inputs=[infer_input], outputs=outputs)
+    return {name: results.as_numpy(name) for name in OUTPUT_NAMES}
 
-    # Perform inference
-    results = client.infer(model_name="fashion_parser", inputs=inputs, outputs=outputs)
 
-    # Get results
-    boxes = results.as_numpy("boxes")
-    labels = results.as_numpy("labels")
-    scores = results.as_numpy("scores")
-    masks = results.as_numpy("masks")
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("image", help="Path to input image")
+    parser.add_argument("--url", default="localhost:8000", help="Triton HTTP endpoint")
+    parser.add_argument("--threshold", type=float, default=0.5, help="Minimum score to report")
+    args = parser.parse_args()
 
-    return {
-        "boxes": boxes,
-        "labels": labels,
-        "scores": scores,
-        "masks": masks
-    }
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    try:
+        results = infer_fashion(args.image, args.url)
+    except Exception as exc:
+        raise SystemExit(f"Inference failed (is Triton running?): {exc}")
+
+    keep = results["scores"] >= args.threshold
+    logger.info("Detected %d objects (score >= %.2f)", keep.sum(), args.threshold)
+    for label, score in zip(results["labels"][keep], results["scores"][keep]):
+        logger.info("  class %d  score %.3f", label, score)
+
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("image", type=str, help="Path to input image")
-    args = parser.parse_args()
-    
-    try:
-        results = infer_fashion(args.image)
-        print(f"Detected {len(results['labels'])} objects.")
-        print(f"Top class: {results['labels'][0]} with score {results['scores'][0]:.4f}")
-    except Exception as e:
-        print(f"Inference failed (is Triton running?): {e}")
+    main()
